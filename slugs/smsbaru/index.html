@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script>
+fetch("https://short-api.up.railway.app/api/resolve/smsbaru")
+.then(r=>r.json())
+.then(d=>window.location.href=d.original)
+.catch(()=>document.body.innerText="URL tidak ditemukan");
+</script>
+</head>
+<body>Redirecting...</body>
+</html>
