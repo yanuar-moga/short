@@ -1,32 +1,87 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL Shortener</title>
+
+<style>
+body{
+margin:0;
+font-family:'Segoe UI';
+background:#f8fafc;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+text-align:center;
+}
+
+.box{
+background:white;
+padding:30px;
+border-radius:16px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+max-width:400px;
+}
+
+h2{
+margin-bottom:10px;
+color:#2563eb;
+}
+
+p{
+color:#555;
+font-size:14px;
+}
+
+a{
+display:inline-block;
+margin-top:15px;
+padding:10px 15px;
+background:#2563eb;
+color:white;
+text-decoration:none;
+border-radius:8px;
+}
+</style>
+
+</head>
 <body>
 
+<div class="box">
+
+<h2>🔗 URL Shortener Aktif</h2>
+
+<p>Gunakan link pendek yang sudah dibuat untuk mengakses halaman tujuan.</p>
+
+<p>Contoh:</p>
+<b>/s/namalink</b>
+
+<a href="https://yanuar-moga.github.io/app/shortener/admin.html">
+Buka Admin
+</a>
+
+</div>
+
 <script>
+
+// 🔥 OPTIONAL: tetap support ?u= lama
 const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 
 const params = new URLSearchParams(window.location.search);
 const slug = params.get("u");
 
-if(!slug){
-document.body.innerHTML="<h2>Link tidak valid</h2>";
-}else{
-
+if(slug){
 fetch(API + "?slug=" + slug)
 .then(res=>res.json())
 .then(res=>{
   if(res.url){
     window.location.href = res.url;
-  }else{
-    document.body.innerHTML="<h2>Link tidak ditemukan</h2>";
   }
-})
-.catch(()=>{
-  document.body.innerHTML="<h2>Gagal koneksi</h2>";
 });
-
 }
+
 </script>
 
 </body>
