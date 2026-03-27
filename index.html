@@ -88,6 +88,12 @@ padding:10px;
 border-radius:8px;
 display:none;
 }
+
+.debug{
+font-size:12px;
+color:#888;
+margin-top:10px;
+}
 </style>
 </head>
 
@@ -122,6 +128,8 @@ display:none;
 <tbody id="data"></tbody>
 </table>
 
+<div id="debug" class="debug"></div>
+
 </div>
 
 </div>
@@ -151,7 +159,10 @@ function tambah(){
 let url=document.getElementById("url").value.trim();
 let slug=document.getElementById("slug").value.trim();
 
-if(!url || !slug) return alert("Isi semua!");
+if(!url || !slug){
+alert("Isi semua!");
+return;
+}
 
 fetch(API,{
 method:"POST",
@@ -159,32 +170,60 @@ body:JSON.stringify({action:"add",slug:slug,url:url})
 })
 .then(r=>r.json())
 .then(r=>{
-if(r.status=="duplicate") alert("Slug sudah ada!");
-else{
-showToast("Berhasil!");
+if(r.status=="duplicate"){
+alert("Slug sudah ada!");
+}else if(r.status=="ok"){
+showToast("Berhasil disimpan!");
+document.getElementById("url").value="";
+document.getElementById("slug").value="";
 load();
+}else{
+alert("Gagal simpan!");
 }
+})
+.catch(()=>{
+alert("Gagal koneksi!");
 });
 
 }
 
-/* LOAD DATA */
+/* LOAD DATA (SUPER FIX) */
 function load(){
 
 let keyword=document.getElementById("search").value.toLowerCase();
 
 fetch(API+"?t="+Date.now())
-.then(r=>r.json())
-.then(data=>{
+.then(res=>res.text())
+.then(text=>{
+
+document.getElementById("debug").innerText = "Response: "+text;
+
+let data;
+
+try{
+data = JSON.parse(text);
+}catch(e){
+document.getElementById("data").innerHTML =
+"<tr><td colspan='4'>❌ JSON ERROR</td></tr>";
+return;
+}
 
 if(!Array.isArray(data)){
-alert("Data tidak valid!");
+document.getElementById("data").innerHTML =
+"<tr><td colspan='4'>❌ Data bukan array</td></tr>";
+return;
+}
+
+if(data.length==0){
+document.getElementById("data").innerHTML =
+"<tr><td colspan='4'>Belum ada data</td></tr>";
 return;
 }
 
 let html="";
 
-data.filter(x=>x.slug.toLowerCase().includes(keyword))
+data
+.filter(x=>x.slug && x.slug.toLowerCase().includes(keyword))
 .forEach(d=>{
 
 let short=BASE+d.slug;
@@ -212,6 +251,11 @@ ${d.slug}
 
 document.getElementById("data").innerHTML=html;
 
+})
+.catch(err=>{
+document.getElementById("data").innerHTML =
+"<tr><td colspan='4'>❌ Gagal fetch</td></tr>";
+console.error(err);
 });
 
 }
