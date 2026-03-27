@@ -22,7 +22,8 @@ background:white;
 padding:30px;
 border-radius:16px;
 box-shadow:0 10px 30px rgba(0,0,0,0.1);
-max-width:400px;
+max-width:420px;
+width:90%;
 }
 
 h2{
@@ -44,42 +45,68 @@ color:white;
 text-decoration:none;
 border-radius:8px;
 }
+
+.loader{
+margin-top:15px;
+font-size:14px;
+color:#888;
+}
 </style>
 
 </head>
 <body>
 
-<div class="box">
+<div class="box" id="box">
 
 <h2>🔗 URL Shortener Aktif</h2>
 
-<p>Gunakan link pendek yang sudah dibuat untuk mengakses halaman tujuan.</p>
+<p>Gunakan link pendek untuk mengakses halaman tujuan.</p>
 
-<p>Contoh:</p>
-<b>/s/namalink</b>
+<p><b>Contoh:</b><br>/s/namalink</p>
 
 <a href="https://yanuar-moga.github.io/app/shortener/admin.html">
 Buka Admin
 </a>
 
+<div class="loader" id="status"></div>
+
 </div>
 
 <script>
 
-// 🔥 OPTIONAL: tetap support ?u= lama
 const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 
+const path = window.location.pathname;
+const slugPath = path.split("/").pop();
+
+// support lama ?u=
 const params = new URLSearchParams(window.location.search);
-const slug = params.get("u");
+const slugQuery = params.get("u");
+
+// PRIORITAS: path dulu, kalau tidak ada pakai query
+const slug = (slugPath && slugPath !== "s" && slugPath !== "index.html") 
+? slugPath 
+: slugQuery;
 
 if(slug){
+
+document.getElementById("status").innerText = "Mengalihkan...";
+
 fetch(API + "?slug=" + slug)
 .then(res=>res.json())
 .then(res=>{
-  if(res.url){
-    window.location.href = res.url;
-  }
+
+if(res.url){
+window.location.href = res.url;
+}else{
+window.location.href = "/s/404.html";
+}
+
+})
+.catch(()=>{
+document.getElementById("status").innerText = "Gagal koneksi...";
 });
+
 }
 
 </script>
