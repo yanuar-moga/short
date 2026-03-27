@@ -1,113 +1,24 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin URL Shortener</title>
 
 <style>
-body{
-font-family:'Segoe UI';
-margin:0;
-background:#f1f5f9;
-}
-
-/* CONTAINER */
-.container{
-max-width:900px;
-margin:auto;
-padding:20px;
-}
-
-/* CARD */
-.card{
-background:white;
-padding:20px;
-border-radius:12px;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
-margin-bottom:20px;
-}
-
-/* TITLE */
-h2{
-text-align:center;
-margin-bottom:20px;
-}
-
-/* FORM */
-.form-group{
-margin-bottom:12px;
-}
-
-input{
-width:100%;
-padding:10px;
-border-radius:8px;
-border:1px solid #ccc;
-}
-
-button{
-padding:10px 15px;
-border:none;
-border-radius:8px;
-background:#2563eb;
-color:white;
-cursor:pointer;
-}
-
-button:hover{
-background:#1d4ed8;
-}
-
-/* TABLE */
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
-}
-
-th, td{
-padding:10px;
-border-bottom:1px solid #ddd;
-text-align:left;
-font-size:14px;
-}
-
-th{
-background:#2563eb;
-color:white;
-}
-
-/* ACTION */
-.actions button{
-margin-right:5px;
-padding:6px 10px;
-font-size:12px;
-}
-
-/* SEARCH */
-.search{
-margin-bottom:10px;
-}
-
-/* BADGE */
-.badge{
-background:#22c55e;
-color:white;
-padding:4px 8px;
-border-radius:6px;
-font-size:12px;
-}
-
-/* RESPONSIVE */
-@media(max-width:600px){
-th, td{
-font-size:12px;
-}
-}
+body{font-family:'Segoe UI';background:#f1f5f9;margin:0}
+.container{max-width:900px;margin:auto;padding:20px}
+.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,0.1)}
+h2{text-align:center}
+input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc}
+button{padding:10px 15px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:10px;border-bottom:1px solid #ddd}
+th{background:#2563eb;color:white}
+.actions button{margin-right:5px;font-size:12px;padding:6px 10px}
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="container">
@@ -115,106 +26,95 @@ font-size:12px;
 <h2>🔗 Admin URL Shortener</h2>
 
 <div class="card">
-
 <h3>Tambah URL</h3>
-
-<div class="form-group">
-<input id="slug" placeholder="Slug (contoh: smsbaru)">
-</div>
-
-<div class="form-group">
-<input id="original" placeholder="URL Asli">
-</div>
-
+<input id="url" placeholder="https://...">
 <button onclick="tambah()">Simpan</button>
-
 </div>
 
 <div class="card">
-
-<h3>Daftar URL</h3>
-
-<input class="search" id="search" placeholder="Cari slug..." onkeyup="render()">
-
+<h3>Data URL</h3>
 <table>
 <thead>
 <tr>
 <th>Slug</th>
 <th>Short URL</th>
+<th>Klik</th>
 <th>Aksi</th>
 </tr>
 </thead>
-<tbody id="table"></tbody>
+<tbody id="data"></tbody>
 </table>
-
 </div>
 
 </div>
 
 <script>
 
-// 🔥 GANTI BASE URL KAMU
-const BASE_URL = "https://namadomain.com/";
+const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
+const BASE = "https://yanuar-moga.github.io/s/?u=";
 
-// 🔥 SIMPAN DATA (sementara pakai localStorage)
-let db = JSON.parse(localStorage.getItem("url_db")||"[]");
+/* AUTO SLUG */
+function slug(){
+return Math.random().toString(36).substring(2,7);
+}
 
 /* TAMBAH */
 function tambah(){
 
-let slug = document.getElementById("slug").value.trim();
-let original = document.getElementById("original").value.trim();
+let url = document.getElementById("url").value.trim();
 
-if(!slug || !original){
-alert("Isi semua data!");
+if(!url){
+alert("Isi URL!");
 return;
 }
 
-// cek duplikat
-if(db.find(x=>x.slug===slug)){
-alert("Slug sudah ada!");
-return;
+let s = slug();
+
+fetch(API,{
+method:"POST",
+body:JSON.stringify({slug:s,url:url})
+})
+.then(()=>{
+
+alert("Berhasil dibuat!\n"+BASE+s);
+
+document.getElementById("url").value="";
+load();
+
+});
+
 }
 
-db.push({slug,original});
+/* LOAD DATA */
+function load(){
 
-localStorage.setItem("url_db",JSON.stringify(db));
-
-document.getElementById("slug").value="";
-document.getElementById("original").value="";
-
-render();
-}
-
-/* RENDER */
-function render(){
-
-let keyword = document.getElementById("search").value.toLowerCase();
+fetch(API)
+.then(res=>res.json())
+.then(data=>{
 
 let html="";
 
-db.filter(x=>x.slug.includes(keyword)).forEach(d=>{
+data.forEach(d=>{
 
-let shortUrl = BASE_URL + d.slug;
+let shortLink = BASE + d.slug;
 
 html+=`
 <tr>
 <td><b>${d.slug}</b></td>
-<td>
-<a href="${shortUrl}" target="_blank">${shortUrl}</a>
-</td>
+<td><a href="${shortLink}" target="_blank">${shortLink}</a></td>
+<td>${d.klik}</td>
 <td class="actions">
-
-<button onclick="copy('${shortUrl}')">Copy</button>
-<button onclick="hapus('${d.slug}')">Hapus</button>
-
+<button onclick="copy('${shortLink}')">Copy</button>
 </td>
 </tr>
 `;
 
 });
 
-document.getElementById("table").innerHTML = html;
+document.getElementById("data").innerHTML = html;
+
+});
+
 }
 
 /* COPY */
@@ -223,16 +123,7 @@ navigator.clipboard.writeText(text);
 alert("Link disalin!");
 }
 
-/* HAPUS */
-function hapus(slug){
-if(confirm("Hapus data?")){
-db = db.filter(x=>x.slug!==slug);
-localStorage.setItem("url_db",JSON.stringify(db));
-render();
-}
-}
-
-render();
+load();
 
 </script>
 
