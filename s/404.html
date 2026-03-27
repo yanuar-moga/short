@@ -1,6 +1,13 @@
 <!DOCTYPE html>
-<html>
-<body>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Redirect...</title>
+</head>
+<body style="font-family:Segoe UI;text-align:center;padding:40px">
+
+<h2>🔗 Mengalihkan...</h2>
+<p id="status">Memproses link...</p>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
@@ -9,6 +16,8 @@ const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWc
 const path = window.location.pathname;
 const slug = path.split("/").pop();
 
+document.getElementById("status").innerText = "Slug: " + slug;
+
 if(slug){
 
 fetch(API + "?slug=" + slug)
@@ -16,14 +25,15 @@ fetch(API + "?slug=" + slug)
 .then(res => {
 
 if(res.url){
+document.getElementById("status").innerText = "Redirect ke: " + res.url;
 window.location.href = res.url;
 }else{
-document.body.innerHTML = "<h2>❌ Link tidak ditemukan</h2>";
+document.getElementById("status").innerHTML = "❌ Link tidak ditemukan";
 }
 
 })
 .catch(()=>{
-document.body.innerHTML = "<h2>❌ Gagal koneksi</h2>";
+document.getElementById("status").innerHTML = "❌ Gagal koneksi";
 });
 
 }
