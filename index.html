@@ -101,6 +101,34 @@ border-radius:6px;
 font-size:12px;
 }
 
+/* 🔥 SLUG STYLE */
+.slug-link{
+background:#2563eb;
+color:white;
+padding:6px 12px;
+border-radius:8px;
+text-decoration:none;
+font-size:13px;
+display:inline-block;
+cursor:pointer;
+}
+
+.slug-link:hover{
+background:#1d4ed8;
+}
+
+/* 🔥 TOAST */
+.toast{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#22c55e;
+color:white;
+padding:10px 15px;
+border-radius:8px;
+display:none;
+}
+
 @media(max-width:600px){
 th,td{font-size:12px}
 }
@@ -148,6 +176,8 @@ th,td{font-size:12px}
 </div>
 
 </div>
+
+<div id="toast" class="toast">Disalin!</div>
 
 <script>
 
@@ -208,14 +238,22 @@ let html="";
 data.filter(x=>x.slug.includes(keyword)).forEach(d=>{
 
 let short = BASE+d.slug;
-let qr = "https://api.qrserver.com/v1/create-qr-code/?size=80x80&data="+short;
+let qr = "https://api.qrserver.com/v1/create-qr-code/?size=90x90&data="+short;
 
 html+=`
 <tr>
 <td><b>${d.slug}</b></td>
-<td><a href="${short}" target="_blank">${short}</a></td>
+
+<td>
+<span class="slug-link" title="${short}" onclick="openLink('${short}')">
+${d.slug}
+</span>
+</td>
+
 <td><span class="badge">${d.klik}</span></td>
+
 <td><img src="${qr}"></td>
+
 <td class="actions">
 <button onclick="copy('${short}')">Copy</button>
 <button onclick="hapus('${d.slug}')">Hapus</button>
@@ -231,13 +269,20 @@ document.getElementById("data").innerHTML = html;
 
 }
 
-/* COPY */
+/* 🔥 COPY */
 function copy(text){
 navigator.clipboard.writeText(text);
-alert("Link disalin!");
+showToast("Link disalin!");
 }
 
-/* HAPUS */
+/* 🔥 OPEN + COPY */
+function openLink(url){
+navigator.clipboard.writeText(url);
+window.open(url, "_blank");
+showToast("Link dibuka & disalin!");
+}
+
+/* 🔥 HAPUS */
 function hapus(slug){
 if(confirm("Hapus link ini?")){
 fetch(API,{
@@ -247,6 +292,14 @@ body:JSON.stringify({action:"delete",slug:slug})
 load();
 });
 }
+}
+
+/* 🔥 TOAST */
+function showToast(msg){
+let t=document.getElementById("toast");
+t.innerText=msg;
+t.style.display="block";
+setTimeout(()=>t.style.display="none",2000);
 }
 
 load();
