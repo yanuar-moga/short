@@ -19,10 +19,7 @@ margin:auto;
 padding:20px;
 }
 
-h2{
-text-align:center;
-margin-bottom:20px;
-}
+h2{text-align:center;}
 
 .card{
 background:white;
@@ -49,33 +46,16 @@ color:white;
 cursor:pointer;
 }
 
-button:hover{
-background:#1d4ed8;
-}
-
-.row{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
-
-.row input{
-flex:1;
-}
-
-.search{
-margin-bottom:10px;
-}
+button:hover{background:#1d4ed8;}
 
 table{
 width:100%;
 border-collapse:collapse;
 }
 
-th, td{
+th,td{
 padding:10px;
-font-size:14px;
-text-align:left;
+border-bottom:1px solid #eee;
 }
 
 th{
@@ -83,14 +63,12 @@ background:#2563eb;
 color:white;
 }
 
-td{
-border-bottom:1px solid #eee;
-}
-
-.actions button{
-margin-right:5px;
-font-size:12px;
-padding:6px 10px;
+.slug{
+background:#2563eb;
+color:white;
+padding:5px 10px;
+border-radius:6px;
+cursor:pointer;
 }
 
 .badge{
@@ -98,21 +76,6 @@ background:#22c55e;
 color:white;
 padding:4px 8px;
 border-radius:6px;
-font-size:12px;
-}
-
-.slug-link{
-background:#2563eb;
-color:white;
-padding:6px 12px;
-border-radius:8px;
-cursor:pointer;
-font-size:13px;
-display:inline-block;
-}
-
-.slug-link:hover{
-background:#1d4ed8;
 }
 
 .toast{
@@ -121,11 +84,10 @@ bottom:20px;
 right:20px;
 background:#22c55e;
 color:white;
-padding:10px 15px;
+padding:10px;
 border-radius:8px;
 display:none;
 }
-
 </style>
 </head>
 
@@ -133,17 +95,12 @@ display:none;
 
 <div class="container">
 
-<h2>🔗 URL Shortener PRO</h2>
+<h2>🔗 URL Shortener</h2>
 
 <div class="card">
 
-<h3>Tambah URL</h3>
-
-<!-- 🔥 URL DULU -->
-<input id="url" placeholder="Masukkan URL tujuan (https://...)"
-onkeyup="autoSlug()">
-
-<input id="slug" placeholder="Slug otomatis (boleh diubah)">
+<input id="url" placeholder="URL tujuan (https://...)" onkeyup="autoSlug()">
+<input id="slug" placeholder="Slug">
 
 <button onclick="tambah()">Simpan</button>
 
@@ -151,9 +108,7 @@ onkeyup="autoSlug()">
 
 <div class="card">
 
-<h3>Data URL</h3>
-
-<input class="search" id="search" placeholder="Cari slug..." onkeyup="load()">
+<input id="search" placeholder="Cari..." onkeyup="load()">
 
 <table>
 <thead>
@@ -161,7 +116,6 @@ onkeyup="autoSlug()">
 <th>Slug</th>
 <th>Short</th>
 <th>Klik</th>
-<th>QR</th>
 <th>Aksi</th>
 </tr>
 </thead>
@@ -179,101 +133,75 @@ onkeyup="autoSlug()">
 const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 const BASE = "https://yanuar-moga.github.io/s/";
 
-/* 🔥 AUTO SLUG */
+/* AUTO SLUG */
 function autoSlug(){
-let url = document.getElementById("url").value.toLowerCase();
+let url=document.getElementById("url").value.toLowerCase();
 
-let slug = url
+let slug=url
 .replace(/https?:\/\//,'')
 .replace(/[^a-z0-9]/g,'-')
 .substring(0,15);
 
-document.getElementById("slug").value = slug;
+document.getElementById("slug").value=slug;
 }
 
-/* 🔥 TAMBAH */
+/* TAMBAH */
 function tambah(){
 
-let url = document.getElementById("url").value.trim();
-let slug = document.getElementById("slug").value.trim();
+let url=document.getElementById("url").value.trim();
+let slug=document.getElementById("slug").value.trim();
 
-if(!url || !slug){
-alert("Isi semua data!");
-return;
-}
+if(!url || !slug) return alert("Isi semua!");
 
-if(!/^https?:\/\//.test(url)){
-alert("URL harus diawali http/https");
-return;
-}
-
-if(!/^[a-z0-9-]+$/.test(slug)){
-alert("Slug hanya huruf kecil, angka, -");
-return;
-}
-
-/* 🔥 SIMPAN */
 fetch(API,{
 method:"POST",
-body:JSON.stringify({
-action:"add",
-slug:slug,
-url:url
+body:JSON.stringify({action:"add",slug:slug,url:url})
 })
-})
-.then(res=>res.json())
-.then(res=>{
-
-if(res.status=="duplicate"){
-alert("Slug sudah dipakai!");
-return;
-}
-
-if(res.status=="ok"){
-showToast("Berhasil disimpan!");
-document.getElementById("url").value="";
-document.getElementById("slug").value="";
+.then(r=>r.json())
+.then(r=>{
+if(r.status=="duplicate") alert("Slug sudah ada!");
+else{
+showToast("Berhasil!");
 load();
-}else{
-alert("Gagal simpan!");
 }
-
-})
-.catch(()=>alert("Gagal koneksi"));
+});
 
 }
 
-/* 🔥 LOAD DATA */
+/* LOAD DATA */
 function load(){
 
-let keyword = document.getElementById("search").value.toLowerCase();
+let keyword=document.getElementById("search").value.toLowerCase();
 
 fetch(API+"?t="+Date.now())
-.then(res=>res.json())
+.then(r=>r.json())
 .then(data=>{
+
+if(!Array.isArray(data)){
+alert("Data tidak valid!");
+return;
+}
 
 let html="";
 
-data.filter(x=>x.slug.includes(keyword)).forEach(d=>{
+data.filter(x=>x.slug.toLowerCase().includes(keyword))
+.forEach(d=>{
 
-let short = BASE+d.slug;
-let qr = "https://api.qrserver.com/v1/create-qr-code/?size=90x90&data="+short;
+let short=BASE+d.slug;
 
 html+=`
 <tr>
-<td><b>${d.slug}</b></td>
+<td>${d.slug}</td>
 
 <td>
-<span class="slug-link" title="${short}" onclick="openLink('${short}')">
+<span class="slug" onclick="openLink('${short}')">
 ${d.slug}
 </span>
 </td>
 
 <td><span class="badge">${d.klik}</span></td>
 
-<td><img src="${qr}"></td>
-
-<td class="actions">
+<td>
 <button onclick="copy('${short}')">Copy</button>
 <button onclick="hapus('${d.slug}')">Hapus</button>
 </td>
@@ -282,28 +210,27 @@ ${d.slug}
 
 });
 
-document.getElementById("data").innerHTML = html;
+document.getElementById("data").innerHTML=html;
 
 });
 
 }
 
-/* 🔥 COPY */
-function copy(text){
-navigator.clipboard.writeText(text);
-showToast("Link disalin!");
-}
-
-/* 🔥 OPEN + COPY */
+/* OPEN */
 function openLink(url){
 navigator.clipboard.writeText(url);
 window.open(url,"_blank");
-showToast("Link dibuka!");
 }
 
-/* 🔥 HAPUS */
+/* COPY */
+function copy(text){
+navigator.clipboard.writeText(text);
+showToast("Disalin!");
+}
+
+/* HAPUS */
 function hapus(slug){
-if(confirm("Hapus link ini?")){
+if(confirm("Hapus?")){
 fetch(API,{
 method:"POST",
 body:JSON.stringify({action:"delete",slug:slug})
@@ -311,7 +238,7 @@ body:JSON.stringify({action:"delete",slug:slug})
 }
 }
 
-/* 🔥 TOAST */
+/* TOAST */
 function showToast(msg){
 let t=document.getElementById("toast");
 t.innerText=msg;
