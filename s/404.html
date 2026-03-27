@@ -1,33 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>Redirect...</title>
-</head>
 <body>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 
 // ambil slug dari URL
-let path = window.location.pathname;
-let slug = path.split("/").pop();
+const path = window.location.pathname;
+const slug = path.split("/").pop();
 
-if(!slug){
-document.body.innerHTML="<h2>Link tidak valid</h2>";
-}else{
+if(slug){
 
 fetch(API + "?slug=" + slug)
-.then(res=>res.json())
-.then(res=>{
-  if(res.url){
-    window.location.href = res.url;
-  }else{
-    document.body.innerHTML="<h2>Link tidak ditemukan</h2>";
-  }
+.then(res => res.json())
+.then(res => {
+
+if(res.url){
+window.location.href = res.url;
+}else{
+document.body.innerHTML = "<h2>❌ Link tidak ditemukan</h2>";
+}
+
 })
 .catch(()=>{
-  document.body.innerHTML="<h2>Gagal koneksi</h2>";
+document.body.innerHTML = "<h2>❌ Gagal koneksi</h2>";
 });
 
 }
