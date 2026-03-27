@@ -13,15 +13,17 @@
 <script>
 const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 
-// ambil slug
 const path = window.location.pathname;
+
+// contoh:
+// /short/s/algo4
 const parts = path.split("/");
 
-// ambil slug setelah /s/
+// ambil slug (posisi ke-3)
 let slug = "";
 
-if(parts.length >= 3 && parts[1] === "s"){
-slug = parts[2];
+if(parts.length >= 4 && parts[2] === "s"){
+  slug = parts[3];
 }
 
 document.getElementById("status").innerText = "Slug: " + slug;
