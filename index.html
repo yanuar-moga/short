@@ -1,49 +1,148 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin URL Shortener</title>
+<title>URL Shortener PRO</title>
 
 <style>
-body{font-family:'Segoe UI';background:#f1f5f9;margin:0}
-.container{max-width:900px;margin:auto;padding:20px}
-.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,0.1)}
-h2{text-align:center}
-input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc}
-button{padding:10px 15px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{padding:10px;border-bottom:1px solid #ddd}
-th{background:#2563eb;color:white}
-.actions button{margin-right:5px;font-size:12px;padding:6px 10px}
-</style>
+body{
+font-family:'Segoe UI';
+margin:0;
+background:#0f172a;
+color:#fff;
+}
 
+.container{
+max-width:1000px;
+margin:auto;
+padding:20px;
+}
+
+h2{
+text-align:center;
+margin-bottom:20px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:14px;
+margin-bottom:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+input{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:none;
+margin-bottom:10px;
+}
+
+button{
+padding:10px 15px;
+border:none;
+border-radius:10px;
+background:#22c55e;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+opacity:0.9;
+}
+
+.row{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.row input{
+flex:1;
+}
+
+.search{
+margin-bottom:10px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th, td{
+padding:10px;
+font-size:14px;
+text-align:left;
+}
+
+th{
+background:#334155;
+}
+
+td{
+border-bottom:1px solid #334155;
+}
+
+.actions button{
+margin-right:5px;
+font-size:12px;
+padding:6px 10px;
+}
+
+.badge{
+background:#22c55e;
+padding:4px 8px;
+border-radius:6px;
+font-size:12px;
+}
+
+@media(max-width:600px){
+th,td{font-size:12px}
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
 
-<h2>🔗 Admin URL Shortener</h2>
+<h2>🚀 URL Shortener PRO</h2>
 
 <div class="card">
+
 <h3>Tambah URL</h3>
+
+<div class="row">
+<input id="slug" placeholder="Custom slug (contoh: ppdb2026)">
 <input id="url" placeholder="https://...">
+</div>
+
 <button onclick="tambah()">Simpan</button>
+
 </div>
 
 <div class="card">
+
 <h3>Data URL</h3>
+
+<input class="search" id="search" placeholder="Cari slug..." onkeyup="load()">
+
 <table>
 <thead>
 <tr>
 <th>Slug</th>
 <th>Short URL</th>
 <th>Klik</th>
+<th>QR</th>
 <th>Aksi</th>
 </tr>
 </thead>
 <tbody id="data"></tbody>
 </table>
+
 </div>
 
 </div>
@@ -53,40 +152,52 @@ th{background:#2563eb;color:white}
 const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 const BASE = "https://yanuar-moga.github.io/s/?u=";
 
-/* AUTO SLUG */
-function slug(){
-return Math.random().toString(36).substring(2,7);
-}
-
 /* TAMBAH */
 function tambah(){
 
+let slug = document.getElementById("slug").value.trim();
 let url = document.getElementById("url").value.trim();
 
-if(!url){
-alert("Isi URL!");
+if(!slug || !url){
+alert("Isi semua data!");
 return;
 }
 
-let s = slug();
+/* VALIDASI */
+if(!/^[a-z0-9-]+$/.test(slug)){
+alert("Slug hanya huruf kecil, angka, -");
+return;
+}
 
+fetch(API)
+.then(res=>res.json())
+.then(data=>{
+
+if(data.find(x=>x.slug===slug)){
+alert("Slug sudah dipakai!");
+return;
+}
+
+/* SIMPAN */
 fetch(API,{
 method:"POST",
-body:JSON.stringify({slug:s,url:url})
+body:JSON.stringify({slug:slug,url:url})
 })
 .then(()=>{
-
-alert("Berhasil dibuat!\n"+BASE+s);
-
+alert("Berhasil!\n"+BASE+slug);
+document.getElementById("slug").value="";
 document.getElementById("url").value="";
 load();
+});
 
 });
 
 }
 
-/* LOAD DATA */
+/* LOAD */
 function load(){
+
+let keyword = document.getElementById("search").value.toLowerCase();
 
 fetch(API)
 .then(res=>res.json())
@@ -94,17 +205,20 @@ fetch(API)
 
 let html="";
 
-data.forEach(d=>{
+data.filter(x=>x.slug.includes(keyword)).forEach(d=>{
 
-let shortLink = BASE + d.slug;
+let short = BASE+d.slug;
+let qr = "https://api.qrserver.com/v1/create-qr-code/?size=80x80&data="+short;
 
 html+=`
 <tr>
 <td><b>${d.slug}</b></td>
-<td><a href="${shortLink}" target="_blank">${shortLink}</a></td>
-<td>${d.klik}</td>
+<td><a href="${short}" target="_blank">${short}</a></td>
+<td><span class="badge">${d.klik}</span></td>
+<td><img src="${qr}"></td>
 <td class="actions">
-<button onclick="copy('${shortLink}')">Copy</button>
+<button onclick="copy('${short}')">Copy</button>
+<button onclick="hapus('${d.slug}')">Hapus</button>
 </td>
 </tr>
 `;
@@ -120,7 +234,12 @@ document.getElementById("data").innerHTML = html;
 /* COPY */
 function copy(text){
 navigator.clipboard.writeText(text);
-alert("Link disalin!");
+alert("Disalin!");
+}
+
+/* HAPUS (via GAS nanti upgrade) */
+function hapus(slug){
+alert("Fitur hapus butuh upgrade GAS 😄");
 }
 
 load();
