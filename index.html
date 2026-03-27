@@ -33,7 +33,7 @@ th{background:#2563eb;color:white}
 
 <div class="card">
 <input id="url" placeholder="URL tujuan">
-<input id="slug" placeholder="Slug (contoh: love)">
+<input id="slug" placeholder="Slug (contoh: bayu)">
 <button onclick="tambah()">Tambah</button>
 </div>
 
@@ -60,6 +60,10 @@ th{background:#2563eb;color:white}
 const API="https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 const BASE="https://yanuar-moga.github.io/short/s/";
 
+// 🔐 PIN ADMIN
+const ADMIN_PIN = "17081945";
+
+/* TAMBAH */
 function tambah(){
 fetch(API,{
 method:"POST",
@@ -71,6 +75,7 @@ url:url.value
 }).then(()=>{load();url.value='';slug.value='';});
 }
 
+/* LOAD DATA */
 function load(){
 
 fetch(API+"?t="+Date.now())
@@ -103,6 +108,7 @@ document.getElementById("klik").innerText=totalKlik;
 });
 }
 
+/* EDIT */
 function edit(slug,url){
 fetch(API,{
 method:"POST",
@@ -110,15 +116,31 @@ body:JSON.stringify({action:"edit",slug:slug,url:url})
 });
 }
 
+/* 🔐 HAPUS DENGAN PIN */
 function hapus(slug){
-if(confirm("Hapus?")){
+
+let pin = prompt("Masukkan PIN Admin:");
+
+if(pin === null) return;
+
+if(pin !== ADMIN_PIN){
+alert("❌ PIN salah!");
+return;
+}
+
+if(confirm("Yakin hapus link ini?")){
 fetch(API,{
 method:"POST",
 body:JSON.stringify({action:"delete",slug:slug})
-}).then(load);
-}
+}).then(()=>{
+alert("✅ Berhasil dihapus");
+load();
+});
 }
 
+}
+
+/* COPY */
 function copy(text){
 navigator.clipboard.writeText(text);
 alert("Copied!");
