@@ -101,23 +101,20 @@ border-radius:6px;
 font-size:12px;
 }
 
-/* 🔥 SLUG STYLE */
 .slug-link{
 background:#2563eb;
 color:white;
 padding:6px 12px;
 border-radius:8px;
-text-decoration:none;
+cursor:pointer;
 font-size:13px;
 display:inline-block;
-cursor:pointer;
 }
 
 .slug-link:hover{
 background:#1d4ed8;
 }
 
-/* 🔥 TOAST */
 .toast{
 position:fixed;
 bottom:20px;
@@ -129,9 +126,6 @@ border-radius:8px;
 display:none;
 }
 
-@media(max-width:600px){
-th,td{font-size:12px}
-}
 </style>
 </head>
 
@@ -145,10 +139,11 @@ th,td{font-size:12px}
 
 <h3>Tambah URL</h3>
 
-<div class="row">
-<input id="slug" placeholder="contoh: bayu">
-<input id="url" placeholder="https://...">
-</div>
+<!-- 🔥 URL DULU -->
+<input id="url" placeholder="Masukkan URL tujuan (https://...)"
+onkeyup="autoSlug()">
+
+<input id="slug" placeholder="Slug otomatis (boleh diubah)">
 
 <button onclick="tambah()">Simpan</button>
 
@@ -164,7 +159,7 @@ th,td{font-size:12px}
 <thead>
 <tr>
 <th>Slug</th>
-<th>Short URL</th>
+<th>Short</th>
 <th>Klik</th>
 <th>QR</th>
 <th>Aksi</th>
@@ -177,21 +172,38 @@ th,td{font-size:12px}
 
 </div>
 
-<div id="toast" class="toast">Disalin!</div>
+<div id="toast" class="toast"></div>
 
 <script>
 
 const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 const BASE = "https://yanuar-moga.github.io/s/";
 
-/* TAMBAH */
+/* 🔥 AUTO SLUG */
+function autoSlug(){
+let url = document.getElementById("url").value.toLowerCase();
+
+let slug = url
+.replace(/https?:\/\//,'')
+.replace(/[^a-z0-9]/g,'-')
+.substring(0,15);
+
+document.getElementById("slug").value = slug;
+}
+
+/* 🔥 TAMBAH */
 function tambah(){
 
-let slug = document.getElementById("slug").value.trim();
 let url = document.getElementById("url").value.trim();
+let slug = document.getElementById("slug").value.trim();
 
-if(!slug || !url){
+if(!url || !slug){
 alert("Isi semua data!");
+return;
+}
+
+if(!/^https?:\/\//.test(url)){
+alert("URL harus diawali http/https");
 return;
 }
 
@@ -200,36 +212,43 @@ alert("Slug hanya huruf kecil, angka, -");
 return;
 }
 
-fetch(API)
+/* 🔥 SIMPAN */
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"add",
+slug:slug,
+url:url
+})
+})
 .then(res=>res.json())
-.then(data=>{
+.then(res=>{
 
-if(data.find(x=>x.slug===slug)){
+if(res.status=="duplicate"){
 alert("Slug sudah dipakai!");
 return;
 }
 
-fetch(API,{
-method:"POST",
-body:JSON.stringify({action:"add",slug:slug,url:url})
-})
-.then(()=>{
-alert("Berhasil!\n"+BASE+slug);
-document.getElementById("slug").value="";
+if(res.status=="ok"){
+showToast("Berhasil disimpan!");
 document.getElementById("url").value="";
+document.getElementById("slug").value="";
 load();
-});
+}else{
+alert("Gagal simpan!");
+}
 
-});
+})
+.catch(()=>alert("Gagal koneksi"));
 
 }
 
-/* LOAD */
+/* 🔥 LOAD DATA */
 function load(){
 
 let keyword = document.getElementById("search").value.toLowerCase();
 
-fetch(API)
+fetch(API+"?t="+Date.now())
 .then(res=>res.json())
 .then(data=>{
 
@@ -278,8 +297,8 @@ showToast("Link disalin!");
 /* 🔥 OPEN + COPY */
 function openLink(url){
 navigator.clipboard.writeText(url);
-window.open(url, "_blank");
-showToast("Link dibuka & disalin!");
+window.open(url,"_blank");
+showToast("Link dibuka!");
 }
 
 /* 🔥 HAPUS */
@@ -288,9 +307,7 @@ if(confirm("Hapus link ini?")){
 fetch(API,{
 method:"POST",
 body:JSON.stringify({action:"delete",slug:slug})
-}).then(()=>{
-load();
-});
+}).then(()=>load());
 }
 }
 
