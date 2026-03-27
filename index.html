@@ -3,97 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>URL Shortener PRO</title>
+<title>Dashboard Shortener PRO</title>
 
 <style>
-body{
-font-family:'Segoe UI';
-margin:0;
-background:#f8fafc;
-color:#1e293b;
-}
-
-.container{
-max-width:1000px;
-margin:auto;
-padding:20px;
-}
-
-h2{text-align:center;}
-
-.card{
-background:white;
-padding:20px;
-border-radius:14px;
-margin-bottom:20px;
-box-shadow:0 5px 20px rgba(0,0,0,0.08);
-}
-
-input{
-width:100%;
-padding:12px;
-border-radius:10px;
-border:1px solid #ccc;
-margin-bottom:10px;
-}
-
-button{
-padding:10px 15px;
-border:none;
-border-radius:10px;
-background:#2563eb;
-color:white;
-cursor:pointer;
-}
-
-button:hover{background:#1d4ed8;}
-
-table{
-width:100%;
-border-collapse:collapse;
-}
-
-th,td{
-padding:10px;
-border-bottom:1px solid #eee;
-}
-
-th{
-background:#2563eb;
-color:white;
-}
-
-.slug{
-background:#2563eb;
-color:white;
-padding:5px 10px;
-border-radius:6px;
-cursor:pointer;
-}
-
-.badge{
-background:#22c55e;
-color:white;
-padding:4px 8px;
-border-radius:6px;
-}
-
-.toast{
-position:fixed;
-bottom:20px;
-right:20px;
-background:#22c55e;
-color:white;
-padding:10px;
-border-radius:8px;
-display:none;
-}
-
-.debug{
-font-size:12px;
-color:#888;
-margin-top:10px;
-}
+body{font-family:Segoe UI;margin:0;background:#f1f5f9}
+.container{max-width:1100px;margin:auto;padding:20px}
+.card{background:#fff;padding:20px;border-radius:12px;margin-bottom:15px;box-shadow:0 5px 20px rgba(0,0,0,.08)}
+input{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin:5px 0}
+button{padding:8px 14px;border:none;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #eee}
+th{background:#2563eb;color:white}
+.badge{background:#22c55e;color:#fff;padding:4px 8px;border-radius:6px}
+.stat{display:flex;gap:10px}
+.stat div{flex:1;background:#2563eb;color:white;padding:10px;border-radius:10px;text-align:center}
 </style>
 </head>
 
@@ -101,193 +24,104 @@ margin-top:10px;
 
 <div class="container">
 
-<h2>🔗 URL Shortener</h2>
+<h2>🚀 Dashboard URL Shortener</h2>
 
-<div class="card">
-
-<input id="url" placeholder="URL tujuan (https://...)" onkeyup="autoSlug()">
-<input id="slug" placeholder="Slug">
-
-<button onclick="tambah()">Simpan</button>
-
+<div class="stat">
+<div>Total Link<br><b id="total">0</b></div>
+<div>Total Klik<br><b id="klik">0</b></div>
 </div>
 
 <div class="card">
+<input id="url" placeholder="URL tujuan">
+<input id="slug" placeholder="Slug (contoh: bayu)">
+<button onclick="tambah()">Tambah</button>
+</div>
 
+<div class="card">
 <input id="search" placeholder="Cari..." onkeyup="load()">
 
 <table>
 <thead>
 <tr>
 <th>Slug</th>
-<th>Short</th>
+<th>URL</th>
 <th>Klik</th>
 <th>Aksi</th>
 </tr>
 </thead>
 <tbody id="data"></tbody>
 </table>
-
-<div id="debug" class="debug"></div>
-
 </div>
 
 </div>
-
-<div id="toast" class="toast"></div>
 
 <script>
 
-const API = "https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
-const BASE = "https://yanuar-moga.github.io/s/";
+const API="https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
+const BASE="https://yanuar-moga.github.io/s/";
 
-/* AUTO SLUG */
-function autoSlug(){
-let url=document.getElementById("url").value.toLowerCase();
-
-let slug=url
-.replace(/https?:\/\//,'')
-.replace(/[^a-z0-9]/g,'-')
-.substring(0,15);
-
-document.getElementById("slug").value=slug;
-}
-
-/* TAMBAH */
 function tambah(){
-
-let url=document.getElementById("url").value.trim();
-let slug=document.getElementById("slug").value.trim();
-
-if(!url || !slug){
-alert("Isi semua!");
-return;
-}
-
 fetch(API,{
 method:"POST",
-body:JSON.stringify({action:"add",slug:slug,url:url})
+body:JSON.stringify({
+action:"add",
+slug:slug.value,
+url:url.value
 })
-.then(r=>r.json())
-.then(r=>{
-if(r.status=="duplicate"){
-alert("Slug sudah ada!");
-}else if(r.status=="ok"){
-showToast("Berhasil disimpan!");
-document.getElementById("url").value="";
-document.getElementById("slug").value="";
-load();
-}else{
-alert("Gagal simpan!");
-}
-})
-.catch(()=>{
-alert("Gagal koneksi!");
-});
-
+}).then(()=>{load();url.value='';slug.value='';});
 }
 
-/* LOAD DATA (SUPER FIX) */
 function load(){
 
-let keyword=document.getElementById("search").value.toLowerCase();
-
 fetch(API+"?t="+Date.now())
-.then(res=>res.text())
-.then(text=>{
-
-document.getElementById("debug").innerText = "Response: "+text;
-
-let data;
-
-try{
-data = JSON.parse(text);
-}catch(e){
-document.getElementById("data").innerHTML =
-"<tr><td colspan='4'>❌ JSON ERROR</td></tr>";
-return;
-}
-
-if(!Array.isArray(data)){
-document.getElementById("data").innerHTML =
-"<tr><td colspan='4'>❌ Data bukan array</td></tr>";
-return;
-}
-
-if(data.length==0){
-document.getElementById("data").innerHTML =
-"<tr><td colspan='4'>Belum ada data</td></tr>";
-return;
-}
+.then(r=>r.json())
+.then(data=>{
 
 let html="";
+let totalKlik=0;
 
-data
-.filter(x=>x.slug && x.slug.toLowerCase().includes(keyword))
-.forEach(d=>{
-
-let short=BASE+d.slug;
+data.forEach(d=>{
+totalKlik+=d.klik;
 
 html+=`
 <tr>
 <td>${d.slug}</td>
-
-<td>
-<span class="slug" onclick="openLink('${short}')">
-${d.slug}
-</span>
-</td>
-
+<td contenteditable onblur="edit('${d.slug}',this.innerText)">${d.url}</td>
 <td><span class="badge">${d.klik}</span></td>
-
 <td>
-<button onclick="copy('${short}')">Copy</button>
+<button onclick="copy('${BASE+d.slug}')">Copy</button>
 <button onclick="hapus('${d.slug}')">Hapus</button>
 </td>
 </tr>
 `;
-
 });
 
 document.getElementById("data").innerHTML=html;
+document.getElementById("total").innerText=data.length;
+document.getElementById("klik").innerText=totalKlik;
 
-})
-.catch(err=>{
-document.getElementById("data").innerHTML =
-"<tr><td colspan='4'>❌ Gagal fetch</td></tr>";
-console.error(err);
 });
-
 }
 
-/* OPEN */
-function openLink(url){
-navigator.clipboard.writeText(url);
-window.open(url,"_blank");
+function edit(slug,url){
+fetch(API,{
+method:"POST",
+body:JSON.stringify({action:"edit",slug:slug,url:url})
+});
 }
 
-/* COPY */
-function copy(text){
-navigator.clipboard.writeText(text);
-showToast("Disalin!");
-}
-
-/* HAPUS */
 function hapus(slug){
 if(confirm("Hapus?")){
 fetch(API,{
 method:"POST",
 body:JSON.stringify({action:"delete",slug:slug})
-}).then(()=>load());
+}).then(load);
 }
 }
 
-/* TOAST */
-function showToast(msg){
-let t=document.getElementById("toast");
-t.innerText=msg;
-t.style.display="block";
-setTimeout(()=>t.style.display="none",2000);
+function copy(text){
+navigator.clipboard.writeText(text);
+alert("Copied!");
 }
 
 load();
