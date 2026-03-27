@@ -11,11 +11,12 @@ body{font-family:Segoe UI;margin:0;background:#f1f5f9}
 .card{background:#fff;padding:20px;border-radius:12px;margin-bottom:15px;box-shadow:0 5px 20px rgba(0,0,0,.08)}
 input{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin:5px 0}
 button{padding:8px 14px;border:none;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer}
+button:hover{background:#1d4ed8}
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #eee}
 th{background:#2563eb;color:white}
 .badge{background:#22c55e;color:#fff;padding:4px 8px;border-radius:6px}
-.stat{display:flex;gap:10px}
+.stat{display:flex;gap:10px;margin-bottom:15px}
 .stat div{flex:1;background:#2563eb;color:white;padding:10px;border-radius:10px;text-align:center}
 </style>
 </head>
@@ -32,7 +33,7 @@ th{background:#2563eb;color:white}
 </div>
 
 <div class="card">
-<input id="url" placeholder="URL tujuan">
+<input id="url" placeholder="URL tujuan (https://...)">
 <input id="slug" placeholder="Slug (contoh: bayu)">
 <button onclick="tambah()">Tambah</button>
 </div>
@@ -60,38 +61,73 @@ th{background:#2563eb;color:white}
 const API="https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
 const BASE="https://yanuar-moga.github.io/short/s/";
 
-// 🔐 PIN ADMIN
-const ADMIN_PIN = "17081945";
-
 /* TAMBAH */
 function tambah(){
+
+let url=document.getElementById("url").value.trim();
+let slug=document.getElementById("slug").value.trim();
+
+if(!url || !slug){
+alert("⚠️ Isi semua data!");
+return;
+}
+
 fetch(API,{
 method:"POST",
 body:JSON.stringify({
 action:"add",
-slug:slug.value,
-url:url.value
+slug:slug,
+url:url
 })
-}).then(()=>{load();url.value='';slug.value='';});
+})
+.then(r=>r.json())
+.then(res=>{
+
+if(res.status==="duplicate"){
+alert("❌ Slug sudah digunakan!");
+}
+else if(res.status==="ok"){
+alert("✅ Berhasil ditambahkan!");
+document.getElementById("url").value="";
+document.getElementById("slug").value="";
+load();
+}else{
+alert("❌ Gagal menyimpan");
+}
+
+});
+
 }
 
 /* LOAD DATA */
 function load(){
 
+let keyword=document.getElementById("search").value.toLowerCase();
+
 fetch(API+"?t="+Date.now())
 .then(r=>r.json())
 .then(data=>{
 
+if(!Array.isArray(data)){
+alert("❌ Gagal mengambil data");
+return;
+}
+
 let html="";
 let totalKlik=0;
 
-data.forEach(d=>{
+data
+.filter(d=>d.slug.toLowerCase().includes(keyword))
+.forEach(d=>{
+
 totalKlik+=d.klik;
 
 html+=`
 <tr>
 <td>${d.slug}</td>
-<td contenteditable onblur="edit('${d.slug}',this.innerText)">${d.url}</td>
+<td contenteditable onblur="edit('${d.slug}',this.innerText)">
+${d.url}
+</td>
 <td><span class="badge">${d.klik}</span></td>
 <td>
 <button onclick="copy('${BASE+d.slug}')">Copy</button>
@@ -99,6 +135,7 @@ html+=`
 </td>
 </tr>
 `;
+
 });
 
 document.getElementById("data").innerHTML=html;
@@ -106,44 +143,64 @@ document.getElementById("total").innerText=data.length;
 document.getElementById("klik").innerText=totalKlik;
 
 });
+
 }
 
 /* EDIT */
 function edit(slug,url){
+
 fetch(API,{
 method:"POST",
-body:JSON.stringify({action:"edit",slug:slug,url:url})
+body:JSON.stringify({
+action:"edit",
+slug:slug,
+url:url
+})
 });
+
 }
 
-/* 🔐 HAPUS DENGAN PIN */
+/* 🔐 HAPUS DENGAN PIN (SERVER) */
 function hapus(slug){
 
 let pin = prompt("Masukkan PIN Admin:");
+if(!pin) return;
 
-if(pin === null) return;
+if(!confirm("Yakin hapus link ini?")) return;
 
-if(pin !== ADMIN_PIN){
-alert("❌ PIN salah!");
-return;
-}
-
-if(confirm("Yakin hapus link ini?")){
 fetch(API,{
 method:"POST",
-body:JSON.stringify({action:"delete",slug:slug})
-}).then(()=>{
+body:JSON.stringify({
+action:"delete",
+slug:slug,
+pin:pin
+})
+})
+.then(r=>r.json())
+.then(res=>{
+
+if(res.status==="wrong_pin"){
+alert("❌ PIN salah!");
+}
+else if(res.status==="deleted"){
 alert("✅ Berhasil dihapus");
 load();
-});
 }
+else if(res.status==="notfound"){
+alert("❌ Data tidak ditemukan");
+}
+else{
+alert("❌ Gagal menghapus");
+}
+
+});
 
 }
 
 /* COPY */
 function copy(text){
 navigator.clipboard.writeText(text);
-alert("Copied!");
+alert("📋 Link disalin!");
 }
 
 load();
