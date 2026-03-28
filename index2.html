@@ -35,19 +35,33 @@ body{
     animation:gradientFlow 15s ease infinite, floating 5s ease-in-out infinite;
     box-shadow:0 15px 40px rgba(0,0,0,.25);
 }
+
 @keyframes gradientFlow{
     0%{background-position:0% 50%}
     50%{background-position:100% 50%}
     100%{background-position:0% 50%}
 }
+
 @keyframes floating{
     0%,100%{transform:translateY(0)}
     50%{transform:translateY(-4px)}
 }
+
+.top-header img{
+    width:50px;
+    height:50px;
+    border-radius:12px;
+    background:#fff;
+    padding:5px;
+    object-fit:cover;
+    box-shadow:0 8px 20px rgba(0,0,0,.3);
+}
+
 .top-header h1{
     margin:0;
     font-size:18px;
 }
+
 .top-header p{
     margin:2px 0 0;
     font-size:12px;
@@ -74,6 +88,7 @@ body{
 .input-group{
     width:100%;
 }
+
 .input-group input{
     width:100%;
     padding:12px;
@@ -93,26 +108,33 @@ button{
     cursor:pointer;
     font-size:13px;
 }
-button:hover{background:#1d4ed8}
+
+button:hover{
+    background:#1d4ed8;
+}
 
 /* ================= TABLE ================= */
 .table-wrapper{
     width:100%;
     overflow-x:auto;
 }
+
 table{
     width:100%;
     border-collapse:collapse;
 }
+
 th,td{
     padding:10px;
     border-bottom:1px solid #eee;
     text-align:left;
 }
+
 th{
     background:#2563eb;
     color:white;
 }
+
 .badge{
     background:#22c55e;
     color:#fff;
@@ -126,6 +148,7 @@ th{
     gap:10px;
     margin-bottom:15px;
 }
+
 .stat div{
     flex:1;
     background:#2563eb;
@@ -150,8 +173,9 @@ th{
 
 <!-- FLOATING HEADER -->
 <div class="top-header">
+    <img src="assets/logo.jpg" alt="logo">
     <div>
-        <h1>🚀 Dashboard URL Shortener</h1>
+        <h1>URL Shortener</h1>
         <p>Kelola link pendek dengan mudah & cepat</p>
     </div>
 </div>
@@ -205,6 +229,7 @@ const BASE="https://yanuar-moga.github.io/short/s/";
 
 /* TAMBAH */
 function tambah(){
+
 let url=document.getElementById("url").value.trim();
 let slug=document.getElementById("slug").value.trim();
 
@@ -223,6 +248,7 @@ url:url
 })
 .then(r=>r.json())
 .then(res=>{
+
 if(res.status==="duplicate"){
 alert("❌ Slug sudah digunakan!");
 }
@@ -234,11 +260,14 @@ load();
 }else{
 alert("❌ Gagal menyimpan");
 }
+
 });
+
 }
 
-/* LOAD */
+/* LOAD DATA */
 function load(){
+
 let keyword=document.getElementById("search").value.toLowerCase();
 
 fetch(API+"?t="+Date.now())
@@ -256,6 +285,7 @@ let totalKlik=0;
 data
 .filter(d=>d.slug.toLowerCase().includes(keyword))
 .forEach(d=>{
+
 totalKlik+=d.klik;
 
 html+=`
@@ -271,6 +301,7 @@ ${d.url}
 </td>
 </tr>
 `;
+
 });
 
 document.getElementById("data").innerHTML=html;
@@ -278,10 +309,12 @@ document.getElementById("total").innerText=data.length;
 document.getElementById("klik").innerText=totalKlik;
 
 });
+
 }
 
 /* EDIT */
 function edit(slug,url){
+
 fetch(API,{
 method:"POST",
 body:JSON.stringify({
@@ -290,10 +323,12 @@ slug:slug,
 url:url
 })
 });
+
 }
 
 /* HAPUS */
 function hapus(slug){
+
 let pin = prompt("Masukkan PIN Admin:");
 if(!pin) return;
 
@@ -309,6 +344,7 @@ pin:pin
 })
 .then(r=>r.json())
 .then(res=>{
+
 if(res.status==="wrong_pin"){
 alert("❌ PIN salah!");
 }
@@ -316,10 +352,15 @@ else if(res.status==="deleted"){
 alert("✅ Berhasil dihapus");
 load();
 }
+else if(res.status==="notfound"){
+alert("❌ Data tidak ditemukan");
+}
 else{
 alert("❌ Gagal menghapus");
 }
+
 });
+
 }
 
 /* COPY */
