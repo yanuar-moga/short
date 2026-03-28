@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Shortener PRO</title>
+
+<style>
+:root{
+    --primary:#3b82f6;
+    --secondary:#22d3ee;
+    --accent:#6366f1;
+}
+
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    background:#f1f5f9;
+}
+
+/* ================= FLOATING HEADER ================= */
+.top-header{
+    max-width:1100px;
+    margin:20px auto;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:18px 24px;
+    border-radius:20px;
+    color:#fff;
+    background:linear-gradient(120deg,var(--primary),var(--accent),var(--secondary));
+    background-size:300% 300%;
+    animation:gradientFlow 15s ease infinite, floating 5s ease-in-out infinite;
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+@keyframes gradientFlow{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+@keyframes floating{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-4px)}
+}
+.top-header h1{
+    margin:0;
+    font-size:18px;
+}
+.top-header p{
+    margin:2px 0 0;
+    font-size:12px;
+    opacity:.9;
+}
+
+/* ================= CONTAINER ================= */
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:0 20px 20px;
+}
+
+/* ================= CARD ================= */
+.card{
+    background:#fff;
+    padding:18px;
+    border-radius:12px;
+    margin-bottom:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+/* ================= INPUT FIX ================= */
+.input-group{
+    width:100%;
+}
+.input-group input{
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    margin-bottom:10px;
+    font-size:14px;
+}
+
+/* ================= BUTTON ================= */
+button{
+    padding:10px 16px;
+    border:none;
+    border-radius:8px;
+    background:#2563eb;
+    color:#fff;
+    cursor:pointer;
+    font-size:13px;
+}
+button:hover{background:#1d4ed8}
+
+/* ================= TABLE ================= */
+.table-wrapper{
+    width:100%;
+    overflow-x:auto;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    padding:10px;
+    border-bottom:1px solid #eee;
+    text-align:left;
+}
+th{
+    background:#2563eb;
+    color:white;
+}
+.badge{
+    background:#22c55e;
+    color:#fff;
+    padding:4px 8px;
+    border-radius:6px;
+}
+
+/* ================= STAT ================= */
+.stat{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+.stat div{
+    flex:1;
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+    font-size:14px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media(max-width:600px){
+    .top-header{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- FLOATING HEADER -->
+<div class="top-header">
+    <div>
+        <h1>🚀 Dashboard URL Shortener</h1>
+        <p>Kelola link pendek dengan mudah & cepat</p>
+    </div>
+</div>
+
+<div class="container">
+
+<!-- STAT -->
+<div class="stat">
+    <div>Total Link<br><b id="total">0</b></div>
+    <div>Total Klik<br><b id="klik">0</b></div>
+</div>
+
+<!-- FORM -->
+<div class="card">
+    <div class="input-group">
+        <input id="url" placeholder="URL tujuan (https://...)">
+        <input id="slug" placeholder="Slug (contoh: bayu)">
+    </div>
+    <button onclick="tambah()">Tambah</button>
+</div>
+
+<!-- DATA -->
+<div class="card">
+
+    <div class="input-group">
+        <input id="search" placeholder="Cari..." onkeyup="load()">
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Slug</th>
+                    <th>URL</th>
+                    <th>Klik</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="data"></tbody>
+        </table>
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+const API="https://script.google.com/macros/s/AKfycbx2JSmlwhBQ2so5lqT3yaSw-eWcqvVb5HfNXoXT3wVJAQohnlrTy1cOacxnkYuI5JqG/exec";
+const BASE="https://yanuar-moga.github.io/short/s/";
+
+/* TAMBAH */
+function tambah(){
+let url=document.getElementById("url").value.trim();
+let slug=document.getElementById("slug").value.trim();
+
+if(!url || !slug){
+alert("⚠️ Isi semua data!");
+return;
+}
+
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"add",
+slug:slug,
+url:url
+})
+})
+.then(r=>r.json())
+.then(res=>{
+if(res.status==="duplicate"){
+alert("❌ Slug sudah digunakan!");
+}
+else if(res.status==="ok"){
+alert("✅ Berhasil ditambahkan!");
+document.getElementById("url").value="";
+document.getElementById("slug").value="";
+load();
+}else{
+alert("❌ Gagal menyimpan");
+}
+});
+}
+
+/* LOAD */
+function load(){
+let keyword=document.getElementById("search").value.toLowerCase();
+
+fetch(API+"?t="+Date.now())
+.then(r=>r.json())
+.then(data=>{
+
+if(!Array.isArray(data)){
+alert("❌ Gagal mengambil data");
+return;
+}
+
+let html="";
+let totalKlik=0;
+
+data
+.filter(d=>d.slug.toLowerCase().includes(keyword))
+.forEach(d=>{
+totalKlik+=d.klik;
+
+html+=`
+<tr>
+<td>${d.slug}</td>
+<td contenteditable onblur="edit('${d.slug}',this.innerText)">
+${d.url}
+</td>
+<td><span class="badge">${d.klik}</span></td>
+<td>
+<button onclick="copy('${BASE+d.slug}')">Copy</button>
+<button onclick="hapus('${d.slug}')">Hapus</button>
+</td>
+</tr>
+`;
+});
+
+document.getElementById("data").innerHTML=html;
+document.getElementById("total").innerText=data.length;
+document.getElementById("klik").innerText=totalKlik;
+
+});
+}
+
+/* EDIT */
+function edit(slug,url){
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"edit",
+slug:slug,
+url:url
+})
+});
+}
+
+/* HAPUS */
+function hapus(slug){
+let pin = prompt("Masukkan PIN Admin:");
+if(!pin) return;
+
+if(!confirm("Yakin hapus link ini?")) return;
+
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"delete",
+slug:slug,
+pin:pin
+})
+})
+.then(r=>r.json())
+.then(res=>{
+if(res.status==="wrong_pin"){
+alert("❌ PIN salah!");
+}
+else if(res.status==="deleted"){
+alert("✅ Berhasil dihapus");
+load();
+}
+else{
+alert("❌ Gagal menghapus");
+}
+});
+}
+
+/* COPY */
+function copy(text){
+navigator.clipboard.writeText(text);
+alert("📋 Link disalin!");
+}
+
+load();
+
+</script>
+
+</body>
+</html>
