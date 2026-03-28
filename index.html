@@ -6,52 +6,218 @@
 <title>Dashboard Shortener PRO</title>
 
 <style>
-body{font-family:Segoe UI;margin:0;background:#f1f5f9}
-.container{max-width:1100px;margin:auto;padding:20px}
-.card{background:#fff;padding:20px;border-radius:12px;margin-bottom:15px;box-shadow:0 5px 20px rgba(0,0,0,.08)}
-input{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin:5px 0}
-button{padding:8px 14px;border:none;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer}
-button:hover{background:#1d4ed8}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #eee}
-th{background:#2563eb;color:white}
-.badge{background:#22c55e;color:#fff;padding:4px 8px;border-radius:6px}
-.stat{display:flex;gap:10px;margin-bottom:15px}
-.stat div{flex:1;background:#2563eb;color:white;padding:10px;border-radius:10px;text-align:center}
+:root{
+    --primary:#3b82f6;
+    --secondary:#22d3ee;
+    --accent:#6366f1;
+}
+
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    background:#f1f5f9;
+}
+
+/* ================= FLOATING HEADER ================= */
+.top-header{
+    max-width:1100px;
+    margin:20px auto;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:18px 24px;
+    border-radius:20px;
+    color:#fff;
+    background:linear-gradient(120deg,var(--primary),var(--accent),var(--secondary));
+    background-size:300% 300%;
+    animation:gradientFlow 15s ease infinite, floating 5s ease-in-out infinite;
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+
+@keyframes gradientFlow{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+
+@keyframes floating{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-4px)}
+}
+
+.top-header img{
+    width:50px;
+    height:50px;
+    border-radius:12px;
+    background:#fff;
+    padding:5px;
+    object-fit:cover;
+    box-shadow:0 8px 20px rgba(0,0,0,.3);
+}
+
+.top-header h1{
+    margin:0;
+    font-size:18px;
+}
+
+.top-header p{
+    margin:2px 0 0;
+    font-size:12px;
+    opacity:.9;
+}
+
+/* ================= CONTAINER ================= */
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:0 20px 20px;
+}
+
+/* ================= CARD ================= */
+.card{
+    background:#fff;
+    padding:18px;
+    border-radius:12px;
+    margin-bottom:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+/* ================= INPUT FIX ================= */
+.input-group{
+    width:100%;
+}
+
+.input-group input{
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    margin-bottom:10px;
+    font-size:14px;
+}
+
+/* ================= BUTTON ================= */
+button{
+    padding:10px 16px;
+    border:none;
+    border-radius:8px;
+    background:#2563eb;
+    color:#fff;
+    cursor:pointer;
+    font-size:13px;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+/* ================= TABLE ================= */
+.table-wrapper{
+    width:100%;
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:10px;
+    border-bottom:1px solid #eee;
+    text-align:left;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+}
+
+.badge{
+    background:#22c55e;
+    color:#fff;
+    padding:4px 8px;
+    border-radius:6px;
+}
+
+/* ================= STAT ================= */
+.stat{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.stat div{
+    flex:1;
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+    font-size:14px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media(max-width:600px){
+    .top-header{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+}
 </style>
 </head>
 
 <body>
 
+<!-- FLOATING HEADER -->
+<div class="top-header">
+    <img src="assets/logo.jpg" alt="logo">
+    <div>
+        <h1>URL Shortener</h1>
+        <p>Kelola link pendek dengan mudah & cepat</p>
+    </div>
+</div>
+
 <div class="container">
 
-<h2>🚀 Dashboard URL Shortener</h2>
-
+<!-- STAT -->
 <div class="stat">
-<div>Total Link<br><b id="total">0</b></div>
-<div>Total Klik<br><b id="klik">0</b></div>
+    <div>Total Link<br><b id="total">0</b></div>
+    <div>Total Klik<br><b id="klik">0</b></div>
 </div>
 
+<!-- FORM -->
 <div class="card">
-<input id="url" placeholder="URL tujuan (https://...)">
-<input id="slug" placeholder="Slug (contoh: bayu)">
-<button onclick="tambah()">Tambah</button>
+    <div class="input-group">
+        <input id="url" placeholder="URL tujuan (https://...)">
+        <input id="slug" placeholder="Slug (contoh: bayu)">
+    </div>
+    <button onclick="tambah()">Tambah</button>
 </div>
 
+<!-- DATA -->
 <div class="card">
-<input id="search" placeholder="Cari..." onkeyup="load()">
 
-<table>
-<thead>
-<tr>
-<th>Slug</th>
-<th>URL</th>
-<th>Klik</th>
-<th>Aksi</th>
-</tr>
-</thead>
-<tbody id="data"></tbody>
-</table>
+    <div class="input-group">
+        <input id="search" placeholder="Cari..." onkeyup="load()">
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Slug</th>
+                    <th>URL</th>
+                    <th>Klik</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="data"></tbody>
+        </table>
+    </div>
+
 </div>
 
 </div>
@@ -160,7 +326,7 @@ url:url
 
 }
 
-/* 🔐 HAPUS DENGAN PIN (SERVER) */
+/* HAPUS */
 function hapus(slug){
 
 let pin = prompt("Masukkan PIN Admin:");
